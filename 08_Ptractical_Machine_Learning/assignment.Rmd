@@ -1,0 +1,143 @@
+---
+title: 'Coursera: Assignment of Practical Machine Learining'
+author: "Shih"
+date: "May 23, 2016"
+output: html_document
+---
+## Introduction
+This is the assignment for Coursera Data Science: Practical Machine Learning. The purpose of the assignment is to predict the manner in which tester did the exercise. According to the instruction, the data set were collected by using movement-tracking devices which monitor activity of human bodies during exercise. In this assignment, prediction models were built from the movement data set and used to predict correct and incorrect barbell liftings. 
+
+## Materials
+
+(Cited from the instruction of assignment)
+
+### Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+### Data
+
+The training data for this project are available here:
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv  
+
+The test data are available here:
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+## Design
+In this assignment, my predictions were performed in decision tree and random forest with easy interpretation and a better prediction for non-linear data. Both outcomes were used for evaluation.
+
+## Results
+
+### Load training data:
+```{r load data}
+set.seed(12345)
+nastring <- c("NA","#DIV/0!","")
+training <- read.csv("./pml-training.csv", na.strings=nastring)
+```
+
+### Data preparation: 
+1. Data partition
+2. Remove near-zero/zero data
+3. Remove variables with significant amount of missing data  
+
+Make data partition for training and testing. 60% to training, 40% to testing
+```{r}
+library(caret)
+inTrain <- createDataPartition(training$classe, p = 0.6, list = F)
+mytraining <- training[inTrain, ]
+mytesting <- training[-inTrain, ]
+
+dim(mytraining)
+dim(mytesting)
+
+```
+160 variables were included in the data.  
+
+Remove near-zero/zero data. I used "nearZeroVar" to identified with default setting. 
+```{r}
+nzv <- nearZeroVar(mytraining, saveMetrics = T)
+mytraining.woNZV <- mytraining[ , grep("FALSE", nzv$nzv)]
+mytesting.woNZV <- mytesting[ , grep("FALSE", nzv$nzv)]
+
+dim(mytraining.woNZV)
+dim(mytesting.woNZV)
+```
+By using this methods, the data without near zero variables included 133 variables.  
+
+Remove variables with 90% missing data
+```{r}
+mytraining.woNZV <- mytraining.woNZV[, -1]
+na_percentage <- apply(is.na(mytraining.woNZV), 2, sum)/nrow(mytraining.woNZV)
+mytraining2 <- mytraining.woNZV[, (na_percentage < 0.1)] 
+dim(mytraining2)
+
+mytesting.woNZV <- mytesting.woNZV[, -1]
+mytesting2 <- mytesting.woNZV[, (na_percentage < 0.1)] 
+dim(mytesting2)
+```
+After data processing, only 58 variables were left in the data. Now it was ready for prediction. 
+
+### Prediction
+I performed two prediction model:
+1. Decision Tree 
+2. Random Forest Model  
+
+
+####Fit Decision Tree
+```{r}
+library(rpart)
+library(rpart.plot)
+library(rattle)
+modFit.rpart <- rpart(classe ~ ., data = mytraining2, method="class")
+print(modFit.rpart)
+fancyRpartPlot(modFit.rpart)
+
+predictions.rpart <- predict(modFit.rpart, newdata = mytesting2[, -58], 
+                         type = "class")
+
+CM.rpart <- confusionMatrix(predictions.rpart, mytesting2$classe)
+print(CM.rpart)
+```
+
+####Fit Random Forest Model
+```{r}
+library(randomForest)
+modFit.rf <- randomForest(classe ~. , data = mytraining2)
+predictions.rf <- predict(modFit.rf, mytesting2, type = "class")
+
+CM.rf <- confusionMatrix(predictions.rf, mytesting2$classe)
+print(CM.rf)
+```
+
+The accuracy of Random Forest Model (`r as.numeric(CM.rf$overall["Accuracy"])`) is higher than which of Decision Tree (`r as.numeric(CM.rpart$overall["Accuracy"])`). Random Forest was used for testing data. 
+
+### Testing data prediction
+Load testing data
+```{r}
+testing <- read.csv("./pml-testing.csv", na.strings=nastring)
+dim(testing)
+```
+
+Pick up variables used previously for prediction models
+```{r}
+name.mytr <- names(mytraining2) # col: 58
+name.testing <- names(testing) # col: 160
+
+same.variable <- intersect(name.testing, name.mytr) #same variable
+
+testing <- testing[, same.variable]
+dim(testing)
+```
+
+Make levels of each variables in the testing data consistent with training data
+```{r, warning=FALSE}
+for (i in 1: length(testing)){
+        testing[i] <- mytraining2[i]
+}
+```
+
+Predict with models built with Random Forest
+```{r}
+predictions.rf.test <- predict(modFit.rf, testing, type = "class")
+print(predictions.rf.test)
+```
