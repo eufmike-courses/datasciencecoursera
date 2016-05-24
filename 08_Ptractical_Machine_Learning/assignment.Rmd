@@ -1,5 +1,5 @@
 ---
-title: 'Coursera: Assignment of Practical Machine Learining'
+title: 'Coursera: Assignment of Practical Machine Learning'
 author: "Shih"
 date: "May 23, 2016"
 output: html_document
@@ -29,10 +29,10 @@ In this assignment, my predictions were performed in decision tree and random fo
 ## Results
 
 ### Load training data:
-```{r load data}
+```{r}
 set.seed(12345)
 nastring <- c("NA","#DIV/0!","")
-training <- read.csv("./pml-training.csv", na.strings=nastring)
+training <- read.csv("./pml-training.csv", na.strings = nastring)
 ```
 
 ### Data preparation: 
@@ -114,7 +114,7 @@ The accuracy of Random Forest Model (`r as.numeric(CM.rf$overall["Accuracy"])`) 
 ### Testing data prediction
 Load testing data
 ```{r}
-testing <- read.csv("./pml-testing.csv", na.strings=nastring)
+testing <- read.csv("pml-testing.csv", na.strings=nastring)
 dim(testing)
 ```
 
@@ -132,7 +132,7 @@ dim(testing)
 Make levels of each variables in the testing data consistent with training data
 ```{r, warning=FALSE}
 for (i in 1: length(testing)){
-        testing[i] <- mytraining2[i]
+        levels(testing[, i]) <- levels(mytraining2[, i])
 }
 ```
 
