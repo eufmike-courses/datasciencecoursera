@@ -100,11 +100,22 @@ print(CM.rpart)
 ```
 
 ####Fit Random Forest Model
-```{r}
+Cross-validation: Ten-fold cross-validation was used in the random forest model. The out-of-sample error is calculate when fitting trees.  
+```{r, include=FALSE}
 library(randomForest)
-modFit.rf <- randomForest(classe ~. , data = mytraining2)
-predictions.rf <- predict(modFit.rf, mytesting2, type = "class")
+```
+```{r}
+modFit.rf <- randomForest(classe ~. , 
+                          data = mytraining2, 
+                          trControl = trainControl(method = "cv"), 
+                          ntree = 10)
+modFit.rf
 
+```
+The out-of-sample (out-of-bag) error estimate was 1.81%. The confusion matrix is shown with the error estimates. 
+
+```{r}
+predictions.rf <- predict(modFit.rf, mytesting2, type = "class")
 CM.rf <- confusionMatrix(predictions.rf, mytesting2$classe)
 print(CM.rf)
 ```
