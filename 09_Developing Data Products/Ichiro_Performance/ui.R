@@ -1,33 +1,21 @@
-#
-# This is the user-interface definition of a Shiny web application. You can
-# run the application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-# 
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 
-# Define UI for application that draws a histogram
 shinyUI(fluidPage(
-  
-  # Application title
-  titlePanel("Old Faithful Geyser Data"),
-  
-  # Sidebar with a slider input for number of bins 
-  sidebarLayout(
-    sidebarPanel(
-       sliderInput("bins",
-                   "Number of bins:",
-                   min = 1,
-                   max = 50,
-                   value = 30)
-    ),
-    
-    # Show a plot of the generated distribution
+        headerPanel("MLB Batting record_example plot"), 
+        titlePanel("test"),
+        sidebarPanel(
+                h4("Filter"), 
+                sliderInput("year", "Year",
+                            min = 1871, max = 2014, value = c(1990, 2014)),
+                sliderInput("age", "Age",
+                            min = 15, max = 60, value = c(25, 40))
+                
+        ),
+        
     mainPanel(
-       plotOutput("distPlot")
-    )
-  )
+                h4("Batting average vs. Times At bat"),
+                plotOutput("newplot")
+                #plotOutput("plot2")
+                
+                )
 ))

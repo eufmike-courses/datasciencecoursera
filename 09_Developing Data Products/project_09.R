@@ -1,6 +1,7 @@
 # This is a simple application presenting batting performance of the iconic MLB
 # player, Suzuki Ichiro, through 2001 to 2014.
 
+
 library(Lahman)
 library(ggplot2)
 library(gridExtra)
@@ -18,13 +19,13 @@ data1 <- data
 data1$batting.average <- data$H/data$AB
 str(data1)
 
-# p1 <- ggplot(data1, aes(x = yearID, y = H)) +
-#         geom_line() + geom_point()
-#
-# p2 <- ggplot(data1, aes(x = yearID, y = batting.average)) +
-#         geom_line() + geom_point()
-#
-#grid.arrange(p1, p2, ncol = 2)
+p1 <- ggplot(data1, aes(x = yearID, y = H)) +
+        geom_line() + geom_point()
+
+p2 <- ggplot(data1, aes(x = yearID, y = batting.average)) +
+        geom_line() + geom_point()
+
+grid.arrange(p1, p2, ncol = 2)
 
 Batting.2 <- tbl_df(Batting)
 Batting.2 <- Batting.2 %>% mutate(., batting.average = H/AB)
@@ -42,3 +43,10 @@ Batting.life
 
 p <- ggplot(Batting.life, aes(x = total.AB, y = avg)) + geom_point()
 p
+
+Master.year <- Master[, c("playerID", "birthYear")]
+head(Master.year)
+Batting.year <- merge(Batting, Master.year)
+head(Batting.year)
+
+library(rCharts)
